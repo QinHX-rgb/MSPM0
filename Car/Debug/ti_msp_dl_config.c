@@ -133,6 +133,8 @@ SYSCONFIG_WEAK void SYSCFG_DL_GPIO_init(void)
 
     DL_GPIO_initDigitalOutput(GPIO_LED_PIN_LED_IOMUX);
 
+    DL_GPIO_initDigitalOutput(GPIO_Buzzer_PIN_Buzzer_IOMUX);
+
     DL_GPIO_initDigitalOutput(GPIO_Motor_PIN_L1_IOMUX);
 
     DL_GPIO_initDigitalOutput(GPIO_Motor_PIN_L2_IOMUX);
@@ -170,6 +172,7 @@ SYSCONFIG_WEAK void SYSCFG_DL_GPIO_init(void)
     DL_GPIO_initDigitalOutput(GPIO_Conder_PIN_6_IOMUX);
 
     DL_GPIO_clearPins(GPIOA, GPIO_LED_PIN_LED_PIN |
+		GPIO_Buzzer_PIN_Buzzer_PIN |
 		GPIO_Motor_PIN_L1_PIN |
 		GPIO_Motor_PIN_L2_PIN |
 		GPIO_Motor_PIN_R1_PIN |
@@ -177,6 +180,7 @@ SYSCONFIG_WEAK void SYSCFG_DL_GPIO_init(void)
 		GPIO_BUTTON_PIN_Key3_PIN |
 		GPIO_Conder_PIN_4_PIN);
     DL_GPIO_enableOutput(GPIOA, GPIO_LED_PIN_LED_PIN |
+		GPIO_Buzzer_PIN_Buzzer_PIN |
 		GPIO_Motor_PIN_L1_PIN |
 		GPIO_Motor_PIN_L2_PIN |
 		GPIO_Motor_PIN_R1_PIN |

@@ -20,6 +20,7 @@ ORDERED_OBJS += \
 "./Driver/grayscale_sensor.o" \
 "./Driver/motor.o" \
 "./Driver/OLED/OLED.o" \
+"./System/Buzzer.o" \
 "./System/Key.o" \
 "./System/clock.o" \
 "./System/delay.o" \
@@ -154,8 +155,8 @@ Car.out: $(OBJS) $(GEN_CMDS)
 # Other Targets
 clean:
 	-$(RM) $(GEN_MISC_FILES__QUOTED)$(GEN_FILES__QUOTED)$(EXE_OUTPUTS__QUOTED)
-	-$(RM) "empty.o" "ti_msp_dl_config.o" "startup_mspm0g350x_ticlang.o" "Driver\CY_Z.o" "Driver\Encoder.o" "Driver\Motor_Control.o" "Driver\PID.o" "Driver\grayscale_sensor.o" "Driver\motor.o" "Driver\OLED\OLED.o" "System\Key.o" "System\clock.o" "System\delay.o" "System\interrupt.o" "System\uart.o" 
-	-$(RM) "empty.d" "ti_msp_dl_config.d" "startup_mspm0g350x_ticlang.d" "Driver\CY_Z.d" "Driver\Encoder.d" "Driver\Motor_Control.d" "Driver\PID.d" "Driver\grayscale_sensor.d" "Driver\motor.d" "Driver\OLED\OLED.d" "System\Key.d" "System\clock.d" "System\delay.d" "System\interrupt.d" "System\uart.d" 
+	-$(RM) "empty.o" "ti_msp_dl_config.o" "startup_mspm0g350x_ticlang.o" "Driver\CY_Z.o" "Driver\Encoder.o" "Driver\Motor_Control.o" "Driver\PID.o" "Driver\grayscale_sensor.o" "Driver\motor.o" "Driver\OLED\OLED.o" "System\Buzzer.o" "System\Key.o" "System\clock.o" "System\delay.o" "System\interrupt.o" "System\uart.o" 
+	-$(RM) "empty.d" "ti_msp_dl_config.d" "startup_mspm0g350x_ticlang.d" "Driver\CY_Z.d" "Driver\Encoder.d" "Driver\Motor_Control.d" "Driver\PID.d" "Driver\grayscale_sensor.d" "Driver\motor.d" "Driver\OLED\OLED.d" "System\Buzzer.d" "System\Key.d" "System\clock.d" "System\delay.d" "System\interrupt.d" "System\uart.d" 
 	-@echo ' '
 
 .PHONY: all clean dependents

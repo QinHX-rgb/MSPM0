@@ -1,6 +1,7 @@
 # FIXED
 
-empty.o: ../empty.c ti_msp_dl_config.h \
+System/Buzzer.o: ../System/Buzzer.c ../System/Buzzer.h \
+ ti_msp_dl_config.h \
  D:/DOWDLOAD/CCSTUDIO/Sample_Code/source/ti/devices/msp/msp.h \
  D:/DOWDLOAD/CCSTUDIO/Sample_Code/source/ti/devices/DeviceFamily.h \
  D:/DOWDLOAD/CCSTUDIO/Sample_Code/source/ti/devices/msp/m0p/mspm0g350x.h \
@@ -83,18 +84,8 @@ empty.o: ../empty.c ti_msp_dl_config.h \
  D:/DOWDLOAD/CCSTUDIO/Sample_Code/source/ti/driverlib/dl_wwdt.h \
  D:/DOWDLOAD/CCSTUDIO/Sample_Code/source/ti/driverlib/m0p/dl_interrupt.h \
  D:/DOWDLOAD/CCSTUDIO/Sample_Code/source/ti/driverlib/m0p/dl_systick.h \
- E:/MCU/MSP/My_WorkSpace/Car/System/delay.h \
- E:/MCU/MSP/My_WorkSpace/Car/System/uart.h \
- E:/MCU/MSP/My_WorkSpace/Car/Driver/CY_Z.h \
- E:/MCU/MSP/My_WorkSpace/Car/Driver/grayscale_sensor.h \
- E:/MCU/MSP/My_WorkSpace/Car/Driver/motor.h \
- E:/MCU/MSP/My_WorkSpace/Car/Driver/Motor_Control.h \
- E:/MCU/MSP/My_WorkSpace/Car/Driver/PID.h \
- E:/MCU/MSP/My_WorkSpace/Car/Driver/OLED/OLED.h \
- E:/MCU/MSP/My_WorkSpace/Car/System/clock.h \
- E:/MCU/MSP/My_WorkSpace/Car/Driver/Encoder.h \
- E:/MCU/MSP/My_WorkSpace/Car/System/interrupt.h \
- E:/MCU/MSP/My_WorkSpace/Car/System/Buzzer.h
+ ../System/delay.h
+../System/Buzzer.h:
 ti_msp_dl_config.h:
 D:/DOWDLOAD/CCSTUDIO/Sample_Code/source/ti/devices/msp/msp.h:
 D:/DOWDLOAD/CCSTUDIO/Sample_Code/source/ti/devices/DeviceFamily.h:
@@ -178,15 +169,4 @@ D:/DOWDLOAD/CCSTUDIO/Sample_Code/source/ti/driverlib/dl_vref.h:
 D:/DOWDLOAD/CCSTUDIO/Sample_Code/source/ti/driverlib/dl_wwdt.h:
 D:/DOWDLOAD/CCSTUDIO/Sample_Code/source/ti/driverlib/m0p/dl_interrupt.h:
 D:/DOWDLOAD/CCSTUDIO/Sample_Code/source/ti/driverlib/m0p/dl_systick.h:
-E:/MCU/MSP/My_WorkSpace/Car/System/delay.h:
-E:/MCU/MSP/My_WorkSpace/Car/System/uart.h:
-E:/MCU/MSP/My_WorkSpace/Car/Driver/CY_Z.h:
-E:/MCU/MSP/My_WorkSpace/Car/Driver/grayscale_sensor.h:
-E:/MCU/MSP/My_WorkSpace/Car/Driver/motor.h:
-E:/MCU/MSP/My_WorkSpace/Car/Driver/Motor_Control.h:
-E:/MCU/MSP/My_WorkSpace/Car/Driver/PID.h:
-E:/MCU/MSP/My_WorkSpace/Car/Driver/OLED/OLED.h:
-E:/MCU/MSP/My_WorkSpace/Car/System/clock.h:
-E:/MCU/MSP/My_WorkSpace/Car/Driver/Encoder.h:
-E:/MCU/MSP/My_WorkSpace/Car/System/interrupt.h:
-E:/MCU/MSP/My_WorkSpace/Car/System/Buzzer.h:
+../System/delay.h:

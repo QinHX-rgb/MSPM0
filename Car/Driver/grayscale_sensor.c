@@ -4,8 +4,6 @@
 uint8_t g_sensor_raw_data = 0xFF;   // 原始数据: 0=黑, 1=白
 int16_t cx = 35;
 uint8_t Flag        = 0;            // 丢线标志: 0=正常, 1=丢线
-uint8_t Status      = 0xFF;         // 当前八路循迹数值 (实时)
-uint8_t Last_Status = 0xFF;         // 丢线前最后一帧有效值 (仅在正常巡线时更新)
 
 void Grayscale_Sensor_Init(void)
 {
@@ -16,6 +14,15 @@ void Grayscale_Sensor_Init(void)
     DL_GPIO_initDigitalInputFeatures(GPIO_Sensor_PIN_SDA_IOMUX,
         DL_GPIO_INVERSION_DISABLE, DL_GPIO_RESISTOR_PULL_UP,
         DL_GPIO_HYSTERESIS_DISABLE, DL_GPIO_WAKEUP_DISABLE);
+}
+
+/* 统计 data 中黑点 (bit=0) 的数量 */
+static uint8_t Grayscale_Count_Black(uint8_t data)
+{
+    uint8_t cnt = 0;
+    for (uint8_t i = 0; i < 8; i++)
+        if (!(data & (1 << i))) cnt++;
+    return cnt;
 }
 
 // 74HC165 读取 8 通道
@@ -65,21 +72,39 @@ static uint16_t Grayscale_Data_To_CX(uint8_t data)
 
 uint8_t Grayscale_Update(void)
 {
-    g_sensor_raw_data = Grayscale_Read_All();
-    Status = g_sensor_raw_data;          // 实时更新当前值
+    static uint8_t  corner_lock = 0;    // 锁定的转弯方向 (0=无锁)
+    static uint16_t lock_cnt    = 0;    // 剩余锁定周期 (每周期≈3ms)
 
-    if (g_sensor_raw_data == 0xFF) {
-        cx   = 35;  // 全白 → 丢线
-        Flag = 0;
-        // 丢线时不更新 Last_Status，保留丢线前最后一帧有效值
-    } else if (g_sensor_raw_data == 0x00) {
-        cx   = 35;  // 全黑 → 静止
-        Flag = 1;
-        Last_Status = Status;
+    g_sensor_raw_data = Grayscale_Read_All();
+
+    /* 锁定期间: 强制维持转弯信号，0.5s 内不响应传感器变化 */
+    if (corner_lock && lock_cnt > 0) {
+        lock_cnt--;
+        cx = 35;
+        Flag = corner_lock;
+        if (g_sensor_raw_data == 0x00) {   // 全黑例外: 立即停车
+            Flag = 0; corner_lock = 0; lock_cnt = 0;
+        }
+        return Flag;
+    }
+    corner_lock = 0;  // 锁到期，释放
+
+    if (g_sensor_raw_data == 0x00) {
+        cx = 35;  Flag = 0;
+    } else if (g_sensor_raw_data == 0xFF) {
+        cx = 35;  Flag = 3;
+    } else if ((g_sensor_raw_data & 0xE0) == 0x00 &&
+               Grayscale_Count_Black(g_sensor_raw_data) >= 4) {
+        /* 左边3黑 + 黑点≥4 → 左转，锁 0.5s */
+        cx = 35;  Flag = 1;  corner_lock = 1;  lock_cnt = 150;
+    } else if ((g_sensor_raw_data & 0x07) == 0x00 &&
+               Grayscale_Count_Black(g_sensor_raw_data) >= 4) {
+        /* 右边3黑 + 黑点≥4 → 右转，锁 0.5s */
+        cx = 35;  Flag = 2;  corner_lock = 2;  lock_cnt = 150;
     } else {
-        cx   = Grayscale_Data_To_CX(g_sensor_raw_data);
-        Flag = 2;
-        Last_Status = Status;
+        /* 正常循线：紧跟黑线，向 11100111 贴近 */
+        cx = Grayscale_Data_To_CX(g_sensor_raw_data);
+        Flag = 4;
     }
     return Flag;
 }

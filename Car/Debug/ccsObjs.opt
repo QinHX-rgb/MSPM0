@@ -8,6 +8,7 @@
 "./Driver/grayscale_sensor.o"
 "./Driver/motor.o"
 "./Driver/OLED/OLED.o"
+"./System/Buzzer.o"
 "./System/Key.o"
 "./System/clock.o"
 "./System/delay.o"

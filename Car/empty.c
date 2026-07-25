@@ -7,10 +7,11 @@
 #include "motor.h"
 #include "Motor_Control.h"
 #include "PID.h"
-#include "OLED/OLED.h"
+#include "OLED.h"
 #include "clock.h"
 #include "Encoder.h"
 #include "interrupt.h"
+#include "Buzzer.h"
 
 /*==================================================================
  *  main — 循线小车主函数
@@ -33,6 +34,7 @@ int main(void)
     Motor_Off();                    // 确保电机初始为停止状态
     OLED_Init();
     Interrupt_Init();
+    Buzzer_Init();
 
     /*—————— 上电指示：LED 快闪 3 次 ——————*/
     for (uint8_t i = 0; i < 3; i++) {
@@ -92,23 +94,30 @@ int main(void)
         delay_ms(300);
     }
 
-
-
     /*—————— 主控制循环 (~3ms 周期) ——————*/
+    uint8_t beeped = 0;
     while (1)
     {
         static uint16_t disp_cnt = 0;
         char buf[17];
         CY_Z_Telemetry telem;
 
-        Grayscale_Update();         // 读传感器 → 更新 cx, Flag, Status
-        Encoder_Update();           // 计算编码器速度 (脉冲/周期)
+        Grayscale_Update();         // Flag: 0=停车 1=左转 2=右转 3=直行 4=循线
+        Encoder_Update();
 
-        if (Flag == 2) {            // 正常巡线
+        if (Flag == 4) {                        // 正常循线
             Control_Line_Track();
-        } else if (Flag == 0) {     // 全白丢线 → 直行
+            beeped = 0;
+        } else if (Flag == 3) {                 // 全白 → 陀螺仪直行
+            if (!beeped) { Buzzer_Beep(); beeped = 1; }
             Control_Straight();
-        } else {                    // Flag == 1 全黑 → 停车
+        } else if (Flag == 2) {                 // 111xx000 → 右转
+            Control_Corner(1);
+            beeped = 0;
+        } else if (Flag == 1) {                 // 000xx111 → 左转
+            Control_Corner(-1);
+            beeped = 0;
+        } else {                                // Flag == 0 全黑 → 停车
             Motor_Off();
         }
 
@@ -117,7 +126,7 @@ int main(void)
             uint8_t d = g_sensor_raw_data;
             disp_cnt = 0;
 
-            /* 第 1 行: 8 位二进制灰度值 */
+            /* 第 1 行: 8 位二进制 + cx */
             buf[0] = (d & 0x80) ? '1' : '0';
             buf[1] = (d & 0x40) ? '1' : '0';
             buf[2] = (d & 0x20) ? '1' : '0';
@@ -126,29 +135,34 @@ int main(void)
             buf[5] = (d & 0x04) ? '1' : '0';
             buf[6] = (d & 0x02) ? '1' : '0';
             buf[7] = (d & 0x01) ? '1' : '0';
-            buf[8] = '\0';
+            buf[8] = ' ';
+            snprintf(&buf[9], 8, "cx=%-3d", cx);
             OLED_ShowString(0, 0, (uint8_t *)buf, 16);
 
-            /* 第 2 行: cx + 编码器 */
-            snprintf(buf, sizeof(buf), "cx=%-3d %d/%d",
-                cx, Encoder_GetSpeedL(), Encoder_GetSpeedR());
+            /* 第 2 行: 直行参考 + 丢线次数 */
+            snprintf(buf, sizeof(buf), "R=%-5.0f #%d",
+                (double)Motor_Control_GetStraightRef(),
+                Motor_Control_GetLostCount());
             OLED_ShowString(0, 2, (uint8_t *)buf, 16);
 
-            /* 第 3 行: 角度 */
-            if (CY_Z_GetTelemetry(&telem)) {
-                snprintf(buf, sizeof(buf), "Yaw=%-6.3f", telem.angle_deg);
-            } else {
+            /* 第 3 行: 实时角度 */
+            if (CY_Z_GetTelemetry(&telem))
+                snprintf(buf, sizeof(buf), "Yaw=%-6.3f", (double)telem.angle_deg);
+            else
                 snprintf(buf, sizeof(buf), "Yaw=--------");
-            }
             OLED_ShowString(0, 4, (uint8_t *)buf, 16);
 
-            /* 第 4 行: 状态 + Flag */
-            if (Flag == 2)
-                snprintf(buf, sizeof(buf), "Track F=2");
-            else if (Flag == 0)
-                snprintf(buf, sizeof(buf), "Lost  F=0");
+            /* 第 4 行: 状态 */
+            if (Flag == 4)
+                snprintf(buf, sizeof(buf), "Track     ");
+            else if (Flag == 3)
+                snprintf(buf, sizeof(buf), "Straight  ");
+            else if (Flag == 2)
+                snprintf(buf, sizeof(buf), "RightTurn ");
+            else if (Flag == 1)
+                snprintf(buf, sizeof(buf), "LeftTurn  ");
             else
-                snprintf(buf, sizeof(buf), "Stop  F=1");
+                snprintf(buf, sizeof(buf), "Stop      ");
             OLED_ShowString(0, 6, (uint8_t *)buf, 16);
         }
 

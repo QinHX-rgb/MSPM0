@@ -7,7 +7,7 @@
 // 全局变量
 extern uint8_t g_sensor_raw_data;   // 8位原始数据 (0=黑, 1=白)
 extern int16_t cx;                  // 重心坐标 (0~70, 254=全黑, 255=丢线)
-extern uint8_t Flag;                // 丢线标志: 0=正常巡线, 1=丢线(全白)
+extern uint8_t Flag;                // 0=全黑停车 1=左转 2=右转 3=全白直行 其他=循线
 extern uint8_t Status;              // 当前八路循迹数值 (实时)
 extern uint8_t Last_Status;         // 丢线前最后一帧有效数值 (丢线时不更新)
 

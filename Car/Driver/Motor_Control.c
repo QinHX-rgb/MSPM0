@@ -17,6 +17,22 @@ static float g_pwm_R_filt = 0.0f;
 /* Control_Straight 丢线直行状态 */
 static bool    g_straight_first = true;  // 首次进入标志
 static float   g_yaw_angle      = 0.0f;  // 当前角度缓存
+static uint8_t g_lost_count     = 0;     // 丢线直行累计次数
+
+/* 角度参考数组：偶数次 0°, 奇数次 180° */
+#define  ANGLE_COUNT   2
+static float   g_angle_refs[ANGLE_COUNT] = {0.0f, 180.0f};
+static uint8_t g_angle_idx  = 0;         // 当前使用的参考索引
+
+float Motor_Control_GetStraightRef(void)
+{
+    return g_angle_refs[g_angle_idx];
+}
+
+uint8_t Motor_Control_GetLostCount(void)
+{
+    return g_lost_count;
+}
 
 /*==================================================================
  *  控制 PID 实例（各函数共用）
@@ -33,13 +49,13 @@ static PID_TypeDef g_pid_spd_diff;  // 直行差速 PID（两轮转速差 → 0�
  /*—————— 循迹 PID 调参区 ——————*/
 #define TRACK_KP      0.88f   // 比例：响应力度，过大会振荡
 #define TRACK_KI      0.0f   // 积分：消除稳态误差，过大会迟滞
-#define TRACK_KD      16.5f   // 微分：抑制过冲，过大会放大噪声
+#define TRACK_KD      8.5f   // 微分：抑制过冲，过大会放大噪声
 #define TRACK_OUT_MAX 30.0f   // PID 输出上限（PWM 差速修正最大值）
 
 /*—————— 直行 PID 调参区 ——————*/
-#define STRAIGHT_DIFF_KP  1.0f    // 差速环比例（两轮转速差 → 0）
+#define STRAIGHT_DIFF_KP  3.0f    // 差速环比例（两轮转速差 → 0）
 #define STRAIGHT_DIFF_KI  0.05f   // 差速环积分
-#define STRAIGHT_DIFF_KD  0.0f    // 差速环微分
+#define STRAIGHT_DIFF_KD  5.0f    // 差速环微分
 #define STRAIGHT_DIFF_MAX 15.0f   // 差速环输出上限
 
 /*—————— 角度 PID 调参区 ——————*/
@@ -78,7 +94,10 @@ void Control_Line_Track(void)
     float target_L, target_R;
     int8_t pwm_L, pwm_R;
 
-    /* 正常巡线时复位直行状态：下次丢线重新锁定参考角度 */
+    /* 刚从丢线恢复到循线 → 推进角度索引，下次丢线用下一个参考 */
+    if (!g_straight_first) {
+        g_angle_idx = (g_angle_idx + 1) % ANGLE_COUNT;
+    }
     g_straight_first = true;
 
     /*—————— 循迹环：传感器误差 → 转向 PID ——————*/
@@ -133,16 +152,20 @@ void Control_Straight(void)
         g_yaw_angle = telem.angle_deg;
     }
 
-    /*—————— 首次进入：复位 PID ——————*/
+    /*—————— 首次进入：计数 + 复位 PID ——————*/
     if (g_straight_first) {
+        g_lost_count++;
         PID_Reset(&g_pid_yaw);
         PID_Reset(&g_pid_spd_diff);
         g_straight_first = false;
     }
 
-    /*—————— 角度环：维持航向 = 0°（上电时 CY-Z 归零的方向）——————
+    /*—————— 角度环：维持航向 = 当前参考角度 ——————
+     * 归一化到 [-180,180]，确保走最短路径（解决 180° 绕远问题）
      * 车头左偏(+) → 需右转 → 左+ 右- */
-    yaw_error = g_yaw_angle;
+    yaw_error = g_yaw_angle - g_angle_refs[g_angle_idx];
+    while (yaw_error > 180.0f)  yaw_error -= 360.0f;
+    while (yaw_error < -180.0f) yaw_error += 360.0f;
     yaw_corr  = PID_Update(&g_pid_yaw, yaw_error);
 
     /*—————— 速度环：编码器差速 → 0 ——————
@@ -179,10 +202,23 @@ void Control_Straight(void)
  *==================================================================*/
 
 /*—————— 转弯调参区 ——————*/
-#define CORNER_SPEED     35      // 转弯 PWM 占空比 (%)
-#define CORNER_TIME_MS   500     // 转弯持续时间 (ms)
+#define CORNER_FAST      35      // 外侧轮 PWM (%)
+#define CORNER_SLOW      15       // 内侧轮 PWM (%)
 
-void Control_Corner(void)
+void Control_Corner(int8_t dir)
 {
-    
+    Motor_On();
+
+    if (dir > 0) {
+        /* 右转：左快 + 右慢 */
+        Set_Speed(0,  CORNER_FAST);
+        Set_Speed(1,  CORNER_SLOW);
+    } else {
+        /* 左转：左慢 + 右快 */
+        Set_Speed(0,  CORNER_SLOW);
+        Set_Speed(1,  CORNER_FAST);
+    }
+
+    g_pwm_L_filt = 0.0f;
+    g_pwm_R_filt = 0.0f;
 }

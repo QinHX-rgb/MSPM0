@@ -85,4 +85,3 @@ int16_t Encoder_GetSpeedR(void)
     return (int16_t)g_enc_R_speed;
 }
 
-/* GROUP1_IRQHandler 已移至 System/interrupt.c，避免重复定义 */

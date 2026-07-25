@@ -152,6 +152,12 @@ extern "C" {
 /* Defines for PIN_LED: GPIOA.0 with pinCMx 1 on package pin 33 */
 #define GPIO_LED_PIN_LED_PIN                                     (DL_GPIO_PIN_0)
 #define GPIO_LED_PIN_LED_IOMUX                                    (IOMUX_PINCM1)
+/* Port definition for Pin Group GPIO_Buzzer */
+#define GPIO_Buzzer_PORT                                                 (GPIOA)
+
+/* Defines for PIN_Buzzer: GPIOA.12 with pinCMx 34 on package pin 5 */
+#define GPIO_Buzzer_PIN_Buzzer_PIN                              (DL_GPIO_PIN_12)
+#define GPIO_Buzzer_PIN_Buzzer_IOMUX                             (IOMUX_PINCM34)
 /* Defines for PIN_L1: GPIOA.8 with pinCMx 19 on package pin 54 */
 #define GPIO_Motor_PIN_L1_PORT                                           (GPIOA)
 #define GPIO_Motor_PIN_L1_PIN                                    (DL_GPIO_PIN_8)
@@ -184,10 +190,10 @@ extern "C" {
 #define GPIO_BUTTON_PIN_Key2_PORT                                        (GPIOB)
 #define GPIO_BUTTON_PIN_Key2_PIN                                (DL_GPIO_PIN_16)
 #define GPIO_BUTTON_PIN_Key2_IOMUX                               (IOMUX_PINCM33)
-/* Defines for PIN_Key3: GPIOA.12 with pinCMx 34 on package pin 5 */
+/* Defines for PIN_Key3: GPIOA.14 with pinCMx 36 on package pin 7 */
 #define GPIO_BUTTON_PIN_Key3_PORT                                        (GPIOA)
-#define GPIO_BUTTON_PIN_Key3_PIN                                (DL_GPIO_PIN_12)
-#define GPIO_BUTTON_PIN_Key3_IOMUX                               (IOMUX_PINCM34)
+#define GPIO_BUTTON_PIN_Key3_PIN                                (DL_GPIO_PIN_14)
+#define GPIO_BUTTON_PIN_Key3_IOMUX                               (IOMUX_PINCM36)
 /* Port definition for Pin Group GPIO_Sensor */
 #define GPIO_Sensor_PORT                                                 (GPIOB)
 
